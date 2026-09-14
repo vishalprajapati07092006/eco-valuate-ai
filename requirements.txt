@@ -6,3 +6,4 @@ torchvision
 pillow
 plotly
 python-multipart
+reportlab
