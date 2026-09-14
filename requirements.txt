@@ -1,5 +1,8 @@
+fastapi
+uvicorn
 torch
 torchvision
 streamlit
 pillow
 plotly
+python-multipart
