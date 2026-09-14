@@ -1,8 +1,8 @@
 fastapi
 uvicorn
+transformers
 torch
 torchvision
-streamlit
 pillow
 plotly
 python-multipart
