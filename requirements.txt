@@ -1,9 +1,10 @@
-fastapi
-uvicorn
-transformers
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch
 torchvision
+fastapi
+uvicorn
+python-multipart
+transformers
 pillow
 plotly
-python-multipart
 reportlab
