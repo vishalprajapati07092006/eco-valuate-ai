@@ -38,6 +38,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+// Single source of truth for the backend URL. Change this one line
+// (or set VITE_API_URL / REACT_APP_API_URL in an .env file) instead of
+// hunting through every component for hardcoded localhost URLs.
+const API_BASE_URL = "https://eco-valuate-ai.onrender.com";
+
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 // Base Facilities Data
@@ -146,7 +151,7 @@ export default function App() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8000/api/classify",
+        `${API_BASE_URL}/api/classify`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -155,7 +160,7 @@ export default function App() {
       setResult(res.data.prediction);
     } catch (err) {
       alert(
-        "Classification failed. Ensure FastAPI server is running on port 8000."
+        "Classification failed. Ensure the backend server is reachable."
       );
     } finally {
       setLoading(false);
@@ -165,7 +170,7 @@ export default function App() {
   const exportPDF = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/generate-pdf",
+        `${API_BASE_URL}/api/generate-pdf`,
         {
           label: result?.class_raw || "storage_drive",
           weight: parseFloat(weight) || 1.0,
