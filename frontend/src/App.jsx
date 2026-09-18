@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import LandingPage from "./components/LandingPage";
 import Footer from "./components/Footer";
-import FloatingBackground from "./components/FloatingBackground"; // Added FloatingBackground Import
+import FloatingBackground from "./components/FloatingBackground";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   Cpu,
   RefreshCw,
-  Zap,
   Scale,
   Sparkles,
   PieChart as PieIcon,
@@ -21,6 +20,7 @@ import {
   Phone,
   Navigation,
   Compass,
+  Gem,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
@@ -73,7 +73,7 @@ const INITIAL_RECYCLING_HUBS = [
   },
 ];
 
-// Fixed Haversine formula to calculate straight-line distance in kilometers
+// Haversine formula to calculate straight-line distance in kilometers
 const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Earth's radius in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -113,17 +113,6 @@ export default function App() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [hubs, setHubs] = useState(INITIAL_RECYCLING_HUBS);
   const [mapCenter, setMapCenter] = useState([19.2, 73.16]);
-
-  // Cursor glow state
-  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const updateCursor = (e) => {
-      setCursorPos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener("mousemove", updateCursor);
-    return () => window.removeEventListener("mousemove", updateCursor);
-  }, []);
 
   const handleImageChange = (selectedFile) => {
     if (selectedFile) {
@@ -237,49 +226,32 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#040806] text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-slate-950 relative overflow-x-hidden flex flex-col">
-      {/* Global Floating Animated Background */}
+      {/* Global Floating Animated Background (now minimal, no cursor-tracking glow) */}
       <FloatingBackground />
-
-      {/* Cursor Glow - Neon Green Torch Effect */}
-      <div
-        className="fixed pointer-events-none z-50 -translate-x-1/2 -translate-y-1/2"
-        style={{ left: `${cursorPos.x}px`, top: `${cursorPos.y}px` }}
-      >
-        {/* Outer dim torch glow */}
-        <div
-          className="absolute rounded-full w-32 h-32 -translate-x-1/2 -translate-y-1/2 blur-2xl transition-transform duration-100 ease-out"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(34,197,94,0.45) 0%, rgba(34,197,94,0.15) 45%, transparent 75%)",
-          }}
-        />
-        {/* Inner bright core ring */}
-        <div className="absolute rounded-full w-3 h-3 -translate-x-1/2 -translate-y-1/2 bg-emerald-400 shadow-[0_0_18px_6px_rgba(34,197,94,0.85)]" />
-      </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Navigation Bar */}
-        <header className="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-xl sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:h-16 sm:py-0 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
             <div
               onClick={() => setActiveTab("home")}
-              className="flex items-center space-x-3 cursor-pointer"
+              className="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer"
             >
-              <div className="p-2 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-xl border border-emerald-500/30 text-emerald-400">
-                <Zap className="w-5 h-5 fill-emerald-400/20" />
+              <div className="p-1.5 sm:p-2 bg-gradient-to-br from-emerald-500/20 to-amber-500/10 rounded-xl border border-emerald-500/30 text-emerald-400">
+                <Gem className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <span className="font-extrabold text-lg tracking-wider text-white">
+              <span className="font-extrabold text-base sm:text-lg tracking-wider text-white">
                 ECO-VALUATE{" "}
                 <span className="text-emerald-400 font-black">AI</span>
               </span>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+            <div className="flex items-center gap-1 sm:gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800 w-full sm:w-auto overflow-x-auto">
               <button
                 onClick={() => setActiveTab("home")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 sm:flex-none whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   activeTab === "home"
-                    ? "bg-emerald-500 text-slate-950 shadow-md"
+                    ? "bg-emerald-500 text-slate-950"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -287,9 +259,9 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab("scanner")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 sm:flex-none whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   activeTab === "scanner"
-                    ? "bg-emerald-500 text-slate-950 shadow-md"
+                    ? "bg-emerald-500 text-slate-950"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -297,13 +269,13 @@ export default function App() {
               </button>
               <button
                 onClick={() => setActiveTab("map")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`flex-1 sm:flex-none whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
                   activeTab === "map"
-                    ? "bg-emerald-500 text-slate-950 shadow-md"
+                    ? "bg-emerald-500 text-slate-950"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                <MapPin className="w-3.5 h-3.5" /> Recycling Hubs
+                <MapPin className="w-3.5 h-3.5" /> Hubs
               </button>
             </div>
           </div>
@@ -313,7 +285,7 @@ export default function App() {
         <div className="flex-grow">
           {/* Tab 1: Landing Page */}
           {activeTab === "home" && (
-            <main className="max-w-7xl mx-auto px-6">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6">
               <LandingPage
                 onStartScan={() => setActiveTab("scanner")}
                 onExploreMap={() => setActiveTab("map")}
@@ -323,10 +295,10 @@ export default function App() {
 
           {/* Tab 2: AI Scanner */}
           {activeTab === "scanner" && (
-            <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow w-full">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 flex-grow w-full">
               <section className="lg:col-span-5 space-y-6">
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-6 shadow-2xl">
-                  <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl">
+                  <h2 className="text-sm sm:text-base font-bold text-white mb-4 flex items-center gap-2">
                     <UploadCloud className="w-5 h-5 text-emerald-400" /> Image &
                     Mass Parameters
                   </h2>
@@ -338,7 +310,7 @@ export default function App() {
                     }}
                     onDragLeave={() => setDragActive(false)}
                     onDrop={handleDrop}
-                    className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                    className={`relative border-2 border-dashed rounded-xl p-5 sm:p-6 text-center cursor-pointer transition-colors ${
                       dragActive
                         ? "border-emerald-400 bg-emerald-500/10"
                         : "border-slate-800 bg-slate-950/50"
@@ -388,7 +360,7 @@ export default function App() {
                     <button
                       onClick={handleUpload}
                       disabled={!file || loading}
-                      className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+                      className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <RefreshCw className="w-5 h-5 animate-spin" />
@@ -410,12 +382,12 @@ export default function App() {
                       className="space-y-6"
                       id="audit-report"
                     >
-                      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 shadow-xl flex items-start justify-between">
+                      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
                           <span className="text-xs font-bold text-emerald-400 tracking-wider uppercase flex items-center gap-1.5 mb-1">
                             <Layers className="w-3.5 h-3.5" /> Detected Class
                           </span>
-                          <h3 className="text-2xl font-black text-white capitalize">
+                          <h3 className="text-xl sm:text-2xl font-black text-white capitalize">
                             {result.analysis.display_name}
                           </h3>
                           <p className="text-xs text-slate-400 mt-1">
@@ -426,7 +398,7 @@ export default function App() {
 
                         <button
                           onClick={exportPDF}
-                          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 rounded-xl flex items-center gap-2 transition-all shadow-lg"
+                          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white border border-slate-700 rounded-xl flex items-center gap-2 transition-colors"
                         >
                           <Download className="w-4 h-4 text-emerald-400" /> Export
                           PDF
@@ -462,7 +434,7 @@ export default function App() {
                         </div>
                       )}
 
-                      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                         <div>
                           <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-1.5">
                             <PieIcon className="w-4 h-4 text-emerald-400" />{" "}
@@ -514,8 +486,8 @@ export default function App() {
                       </div>
                     </motion.div>
                   ) : (
-                    <div className="bg-slate-900/30 border border-dashed border-slate-800/80 rounded-2xl h-full min-h-[420px] flex flex-col items-center justify-center p-8 text-center">
-                      <Cpu className="w-8 h-8 text-slate-500 mb-2 animate-pulse" />
+                    <div className="bg-slate-900/30 border border-dashed border-slate-800/80 rounded-2xl h-full min-h-[320px] sm:min-h-[420px] flex flex-col items-center justify-center p-8 text-center">
+                      <Cpu className="w-8 h-8 text-slate-500 mb-2" />
                       <h3 className="text-base font-bold text-slate-300">
                         Awaiting Input Parameters
                       </h3>
@@ -528,8 +500,8 @@ export default function App() {
 
           {/* Tab 3: Geolocation & Routing Map */}
           {activeTab === "map" && (
-            <main className="max-w-7xl mx-auto px-6 py-8 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl min-h-[480px] h-[550px] relative">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+              <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl min-h-[320px] h-[380px] sm:h-[550px] relative">
                 <MapContainer
                   center={mapCenter}
                   zoom={11}
@@ -587,15 +559,15 @@ export default function App() {
 
               <div className="lg:col-span-4 space-y-4 flex flex-col justify-between">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                       <Building2 className="w-5 h-5 text-emerald-400" /> Drop-off
                       Facilities
                     </h3>
                     <button
                       onClick={getUserGeolocation}
                       disabled={locationLoading}
-                      className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5"
+                      className="shrink-0 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
                     >
                       {locationLoading ? (
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -606,19 +578,19 @@ export default function App() {
                     </button>
                   </div>
 
-                  <div className="space-y-3 max-h-[440px] overflow-y-auto pr-1">
+                  <div className="space-y-3 max-h-[320px] sm:max-h-[440px] overflow-y-auto pr-1">
                     {hubs.map((hub) => (
                       <div
                         key={hub.id}
                         onClick={() => setMapCenter([hub.lat, hub.lng])}
-                        className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl shadow-lg hover:border-emerald-500/40 transition-colors cursor-pointer"
+                        className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl hover:border-emerald-500/40 transition-colors cursor-pointer"
                       >
-                        <div className="flex items-start justify-between">
+                        <div className="flex items-start justify-between gap-2">
                           <h4 className="text-sm font-bold text-white">
                             {hub.name}
                           </h4>
                           {hub.distance && (
-                            <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                            <span className="shrink-0 text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                               {hub.distance} km
                             </span>
                           )}
