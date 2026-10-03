@@ -38,6 +38,20 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+// Custom red pin for the college (campus)
+// Campus pin: same shape as default pins, tinted red via CSS
+const campusIcon = new L.Icon({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+  className: "campus-marker",
+});
+
+
 // Single source of truth for the backend URL. Change this one line
 // (or set VITE_API_URL / REACT_APP_API_URL in an .env file) instead of
 // hunting through every component for hardcoded localhost URLs.
@@ -45,31 +59,42 @@ const API_BASE_URL = "https://eco-valuate-ai.onrender.com";
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
+// Campus = epicenter of the map (Vidyalankar Institute of Technology, Wadala).
+// Coordinates are approximate: right-click the campus on Google Maps and
+// paste the exact lat/lng here if you want a precise pin.
+const CAMPUS = {
+  name: "Vidyalankar Institute of Technology",
+  lat: 19.021803585451245,
+  lng: 72.87051726517578,
+};
+
 // Base Facilities Data
+// NOTE: Pins are approximate. Replace lat/lng with exact values copied from
+// Google Maps (right-click the pin > click the coordinates) and verify phones.
 const INITIAL_RECYCLING_HUBS = [
   {
     id: 1,
-    name: "EcoRecycle India Hub",
-    lat: 19.186,
-    lng: 73.191,
-    phone: "+91 98200 12345",
-    type: "State Authorized",
+    name: "Eco Recycling Ltd (Ecoreco)",
+    lat: 19.1136,
+    lng: 72.8697, // approximate, actual office is in Andheri (E)
+    phone: "1800-102-1020",
+    type: "Authorized E-Waste Recycler",
   },
   {
     id: 2,
-    name: "GreenTech E-Waste Processor",
-    lat: 19.215,
-    lng: 73.181,
-    phone: "+91 98111 67890",
-    type: "R2 Certified Refiner",
+    name: "The2Bros",
+    lat: 19.0728,
+    lng: 72.8826, // approximate, Kurla area
+    phone: "8657771236",
+    type: "Authorized E-Waste Dismantler",
   },
   {
     id: 3,
-    name: "Kalyan Municipal E-Drop Kiosk",
-    lat: 19.24,
-    lng: 73.135,
-    phone: "1800-222-333",
-    type: "Public Drop Kiosk",
+    name: "Namo Ewaste (Lower Parel)",
+    lat: 18.995, // approximate, Lower Parel area
+    lng: 72.83,
+    phone: "91300009977", // TODO: verify, looks like a missing +91 or a typo
+    type: "Authorized Collection Centre",
   },
 ];
 
@@ -82,11 +107,18 @@ const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLat / 2) *
+      Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return (R * c).toFixed(1);
 };
+
+// Attach distance from a given origin to every hub and sort nearest-first
+const sortHubsByDistance = (originLat, originLng) =>
+  INITIAL_RECYCLING_HUBS.map((hub) => ({
+    ...hub,
+    distance: calculateDistanceKm(originLat, originLng, hub.lat, hub.lng),
+  })).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
 
 // Component to dynamically recenter map when location changes
 function MapRecenter({ center }) {
@@ -108,11 +140,13 @@ export default function App() {
   const [dragActive, setDragActive] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
 
-  // Geolocation states
+  // Geolocation states (default view = VIT Wadala campus)
   const [userLocation, setUserLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
-  const [hubs, setHubs] = useState(INITIAL_RECYCLING_HUBS);
-  const [mapCenter, setMapCenter] = useState([19.2, 73.16]);
+  const [hubs, setHubs] = useState(() =>
+    sortHubsByDistance(CAMPUS.lat, CAMPUS.lng)
+  );
+  const [mapCenter, setMapCenter] = useState([CAMPUS.lat, CAMPUS.lng]);
 
   const handleImageChange = (selectedFile) => {
     if (selectedFile) {
@@ -193,17 +227,9 @@ export default function App() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const newUserLoc = { lat: latitude, lng: longitude };
-        setUserLocation(newUserLoc);
+        setUserLocation({ lat: latitude, lng: longitude });
         setMapCenter([latitude, longitude]);
-
-        // Calculate distance and sort hubs from nearest to farthest
-        const sortedHubs = INITIAL_RECYCLING_HUBS.map((hub) => ({
-          ...hub,
-          distance: calculateDistanceKm(latitude, longitude, hub.lat, hub.lng),
-        })).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
-
-        setHubs(sortedHubs);
+        setHubs(sortHubsByDistance(latitude, longitude));
         setLocationLoading(false);
       },
       (error) => {
@@ -215,6 +241,13 @@ export default function App() {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  // Go back to the campus as the reference point
+  const resetToCampus = () => {
+    setUserLocation(null);
+    setMapCenter([CAMPUS.lat, CAMPUS.lng]);
+    setHubs(sortHubsByDistance(CAMPUS.lat, CAMPUS.lng));
   };
 
   const pieData = result?.analysis?.materials
@@ -513,6 +546,20 @@ export default function App() {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   />
 
+                  {/* Campus marker (default epicenter) */}
+                  <Marker position={[CAMPUS.lat, CAMPUS.lng]} icon={campusIcon}>
+                    <Popup>
+                      <div className="p-1 text-slate-950 font-sans">
+                        <strong className="block text-sm font-bold text-blue-600">
+                          {CAMPUS.name}
+                        </strong>
+                        <span className="text-xs text-slate-600">
+                          Wadala, Mumbai
+                        </span>
+                      </div>
+                    </Popup>
+                  </Marker>
+
                   {/* User position marker */}
                   {userLocation && (
                     <Marker position={[userLocation.lat, userLocation.lng]}>
@@ -564,19 +611,34 @@ export default function App() {
                       <Building2 className="w-5 h-5 text-emerald-400" /> Drop-off
                       Facilities
                     </h3>
-                    <button
-                      onClick={getUserGeolocation}
-                      disabled={locationLoading}
-                      className="shrink-0 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
-                    >
-                      {locationLoading ? (
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Compass className="w-3.5 h-3.5" />
+                    <div className="flex gap-2 shrink-0">
+                      {userLocation && (
+                        <button
+                          onClick={resetToCampus}
+                          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold rounded-xl transition-colors"
+                        >
+                          Campus
+                        </button>
                       )}
-                      {userLocation ? "Recalculate" : "Locate Me"}
-                    </button>
+                      <button
+                        onClick={getUserGeolocation}
+                        disabled={locationLoading}
+                        className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5"
+                      >
+                        {locationLoading ? (
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Compass className="w-3.5 h-3.5" />
+                        )}
+                        {userLocation ? "Recalculate" : "Locate Me"}
+                      </button>
+                    </div>
                   </div>
+
+                  <p className="text-xs text-slate-400">
+                    Distances from{" "}
+                    {userLocation ? "your location" : CAMPUS.name}
+                  </p>
 
                   <div className="space-y-3 max-h-[320px] sm:max-h-[440px] overflow-y-auto pr-1">
                     {hubs.map((hub) => (
@@ -605,10 +667,10 @@ export default function App() {
                             {hub.phone}
                           </p>
                           <a
-                            href={`https://www.google.com/maps/dir/?api=1&destination=${hub.lat},${hub.lng}${
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${hub.lat},${hub.lng}&origin=${
                               userLocation
-                                ? `&origin=${userLocation.lat},${userLocation.lng}`
-                                : ""
+                                ? `${userLocation.lat},${userLocation.lng}`
+                                : `${CAMPUS.lat},${CAMPUS.lng}`
                             }`}
                             target="_blank"
                             rel="noreferrer"

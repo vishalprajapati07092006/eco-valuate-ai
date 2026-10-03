@@ -29,3 +29,7 @@ body {
   transition: transform 0.1s ease;
   filter: blur(4px);
 }
+
+.campus-marker {
+  filter: hue-rotate(150deg) saturate(2) brightness(1.05);
+}
